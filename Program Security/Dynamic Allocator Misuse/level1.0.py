@@ -1,5 +1,5 @@
 from pwn import *
-r = process("./level1")
+r = process("./level1.0")
 r.read()
 r.sendline("malloc")
 r.sendline("330")
